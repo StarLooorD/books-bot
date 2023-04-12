@@ -1,0 +1,126 @@
+import json
+
+import psycopg2
+import requests
+import telebot
+from telebot import types
+
+connection = psycopg2.connect(dbname='book_ratings', user='postgres', password='postgres', host='localhost')
+
+cursor = connection.cursor()
+
+cursor.execute('CREATE TABLE IF NOT EXISTS ratings  '
+               '(id serial PRIMARY KEY, book_title VARCHAR(50), book_author VARCHAR(50), book_rating REAL)')
+
+bot_token = '5671306995:AAH9CBuqfyyuwQ9W8KsQ64cEDclOfw8onJg'
+google_map_api_token = 'AIzaSyBpeSbti2GQ1Jb2oRmedrTOsns4rm44kzc'
+bot = telebot.TeleBot(token=bot_token)
+
+main_menu_keyboard = types.ReplyKeyboardMarkup(row_width=2)
+btn1 = types.KeyboardButton(text='Порадити книгу')
+btn2 = types.KeyboardButton(text='Додати книгу в улюблені')
+btn3 = types.KeyboardButton(text='Видалити книгу з улюблених')
+btn4 = types.KeyboardButton(text='Переглянути список улюблених книг')
+btn5 = types.KeyboardButton(text='Переглянути найближчі книжкові магазини')
+main_menu_keyboard.add(btn1, btn2, btn3, btn4, btn5)
+
+
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    user_name = message.from_user.first_name
+    chat_id = message.chat.id
+    bot.send_message(message.chat.id, f'Привіт, {user_name}! 👋\n\n'
+                                      f'Я бот для рекомендацій книжок. 📚\n\n'
+                                      f'Поділися своїми вподобаннями, і я порекомендую тобі цікаву книгу, '
+                                      f'використовуючи нейромережу. 💫\n\n'
+                                      f'Ти можеш обрати одну з моїх функцій у меню внизу. 👇\n\n'
+                                      f'Щоб отримати детальнішу інформацію про мене, використай команду /help ℹ️',
+                     reply_markup=main_menu_keyboard)
+
+
+@bot.message_handler(commands=['help'])
+def send_help_info(message):
+    bot.send_message(message.chat.id, ...)
+
+
+@bot.message_handler(func=lambda message: message.text == 'Додати книгу в улюблені')
+def add_book_to_favourite(message):
+    bot_message = bot.send_message(message.chat.id,
+                                   'Вкажи назву книги, автора та оцінку від 0.0 до 5.0.\nНапр: Гарі Потер, Дж. К. Ролінг, 4.7')
+    bot.register_next_step_handler(bot_message, add_book_to_db)
+
+
+def add_book_to_db(message):
+    book_title, book_author, book_rating = message.text.split(',')
+    cursor.execute(
+        f"INSERT INTO ratings (book_title, book_author, book_rating) VALUES ('{book_title}', '{book_author}', {book_rating})")
+    connection.commit()
+    bot.send_message(message.chat.id, f'✅ Готово!\nКнигу *"{book_title}"* додано до списку '
+                                      f'улюблених.', parse_mode='Markdown')
+
+
+@bot.message_handler(func=lambda message: message.text == 'Видалити книгу з улюблених')
+def remove_book_from_favourite(message):
+    bot_message = bot.send_message(message.chat.id, 'Вкажи назву книги, яку хочеш видалити із списку улюблених')
+    bot.register_next_step_handler(bot_message, remove_book_from_db)
+
+
+def remove_book_from_db(message):
+    book_name_to_remove = message.text
+    cursor.execute(f"DELETE FROM ratings WHERE book_title = '{book_name_to_remove}'")
+    connection.commit()
+    bot.send_message(message.chat.id, f'✅ Готово!\nКнигу "*{book_name_to_remove}*" видалено списку '
+                                      f'улюблених.', parse_mode='Markdown')
+
+
+@bot.message_handler(func=lambda message: message.text == 'Переглянути список улюблених книг')
+def get_favourite_books(message):
+    cursor.execute('SELECT * FROM ratings ORDER BY book_rating DESC LIMIT 10')
+    top_books = cursor.fetchall()
+    response = "*🫶 Мої улюблені книги:*\n\n"
+    counter = 1
+    for book in top_books:
+        response += f"{counter}) 📖 *{book[1]}*\n    🤵{book[2]}\n    ⭐ {book[3]}\n\n"
+        counter += 1
+    # with open('images/istockphoto-1370405901-612x612.jpg', 'rb') as photo:
+    #     bot.send_photo(message.chat.id, photo, caption=response, parse_mode='Markdown')
+    bot.send_message(message.chat.id, response, parse_mode='Markdown')
+
+
+@bot.message_handler(func=lambda message: message.text == 'Порадити книгу')
+def recommend_book(message):
+    user_id = message.chat.id
+    # Виклик алгоритму рекомендацій на основі вибраного API
+    # Або запит до бази даних книг
+    # Вибір книги для рекомендації користувачеві
+    book_recommendation = "Прочитайте цю книжку: НАЗВА КНИЖКИ"
+    bot.send_message(user_id, book_recommendation)
+
+
+@bot.message_handler(func=lambda message: message.text == 'Переглянути найближчі книжкові магазини')
+def get_user_location(message):
+    bot_message = bot.send_message(message.chat.id, 'Поділися своєю локацією')
+    bot.register_next_step_handler(bot_message, get_nearest_book_stores)
+
+
+def get_nearest_book_stores(message):
+    user_lat = message.location.latitude
+    user_lng = message.location.longitude
+    google_map_api_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={user_lat},{user_lng}&radius=3000&type=book_store&language=uk&key={google_map_api_token}"
+    google_map_api_response = requests.get(google_map_api_url)
+    result = json.loads(google_map_api_response.text)
+    bookstores = result["results"]
+    bot_response = "*👇 Ось найближчі книжкові магазини:*\n\n"
+    for bookstore in bookstores:
+        name = bookstore["name"]
+        address = bookstore["vicinity"]
+        rating = bookstore["rating"] if "rating" in bookstore else "-"
+        if "opening_hours" in bookstore:
+            open_now = '🔓 Відчинено' if bookstore["opening_hours"]["open_now"] else '🔓 Зачинено'
+        else:
+            open_now = '🔓 -'
+        bot_response += f"📚 Магазин: {name}\n 📍 Адреса: {address}\n ⭐ Рейтинг: {rating}\n {open_now}\n\n"
+    bot.send_message(message.chat.id, bot_response, parse_mode='Markdown')
+
+
+bot.polling(none_stop=True, interval=0)
