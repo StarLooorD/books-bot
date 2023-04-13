@@ -5,21 +5,13 @@ import requests
 import telebot
 from telebot import types
 
-connection = psycopg2.connect(
-    dbname='d94la4l35lvc45',
-    user='pyxobvjdqcpjns',
-    password='8ff357a572c361bb594ede291ed17d7e3cf0ba224e4ea07224bdc4c6bed6a973',
-    host='ec2-52-215-68-14.eu-west-1.compute.amazonaws.com',
-)
+from configs import DATABASE_URL, BOT_TOKEN, GOOGLE_MAP_API_TOKEN
+
+connection = psycopg2.connect(DATABASE_URL)
 
 cursor = connection.cursor()
 
-cursor.execute('CREATE TABLE IF NOT EXISTS ratings  '
-               '(id serial PRIMARY KEY, book_title VARCHAR(50), book_author VARCHAR(50), book_rating REAL)')
-
-bot_token = '5671306995:AAH9CBuqfyyuwQ9W8KsQ64cEDclOfw8onJg'
-google_map_api_token = 'AIzaSyBpeSbti2GQ1Jb2oRmedrTOsns4rm44kzc'
-bot = telebot.TeleBot(token=bot_token)
+bot = telebot.TeleBot(token=BOT_TOKEN)
 
 main_menu_keyboard = types.ReplyKeyboardMarkup(row_width=2)
 btn1 = types.KeyboardButton(text='Порадити книгу')
@@ -34,6 +26,8 @@ main_menu_keyboard.add(btn1, btn2, btn3, btn4, btn5)
 def send_welcome(message):
     user_name = message.from_user.first_name
     chat_id = message.chat.id
+    cursor.execute(f'CREATE TABLE IF NOT EXISTS {chat_id}_ratings  '
+                   '(id serial PRIMARY KEY, book_title VARCHAR(50), book_author VARCHAR(50), book_rating REAL)')
     bot.send_message(message.chat.id, f'Привіт, {user_name}! 👋\n\n'
                                       f'Я бот для рекомендацій книжок. 📚\n\n'
                                       f'Поділися своїми вподобаннями, і я порекомендую тобі цікаву книгу, '
@@ -111,7 +105,7 @@ def get_user_location(message):
 def get_nearest_book_stores(message):
     user_lat = message.location.latitude
     user_lng = message.location.longitude
-    google_map_api_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={user_lat},{user_lng}&radius=3000&type=book_store&language=uk&key={google_map_api_token}"
+    google_map_api_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={user_lat},{user_lng}&radius=3000&type=book_store&language=uk&key={GOOGLE_MAP_API_TOKEN}"
     google_map_api_response = requests.get(google_map_api_url)
     result = json.loads(google_map_api_response.text)
     bookstores = result["results"]
