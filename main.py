@@ -26,7 +26,7 @@ main_menu_keyboard.add(btn1, btn2, btn3, btn4, btn5)
 def send_welcome(message):
     user_name = message.from_user.first_name
     chat_id = message.chat.id
-    cursor.execute(f'CREATE TABLE IF NOT EXISTS {chat_id}_ratings  '
+    cursor.execute(f'CREATE TABLE IF NOT EXISTS ratings_{str(chat_id)}  '
                    '(id serial PRIMARY KEY, book_title VARCHAR(50), book_author VARCHAR(50), book_rating REAL)')
     bot.send_message(message.chat.id, f'Привіт, {user_name}! 👋\n\n'
                                       f'Я бот для рекомендацій книжок. 📚\n\n'
