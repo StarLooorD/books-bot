@@ -51,8 +51,9 @@ def add_book_to_favourite(message):
 
 def add_book_to_db(message):
     book_title, book_author, book_rating = message.text.split(',')
+    chat_id = message.chat.id
     cursor.execute(
-        f"INSERT INTO ratings (book_title, book_author, book_rating) VALUES ('{book_title}', '{book_author}', {book_rating})")
+        f"INSERT INTO ratings_{str(chat_id)} (book_title, book_author, book_rating) VALUES ('{book_title}', '{book_author}', {book_rating})")
     connection.commit()
     bot.send_message(message.chat.id, f'✅ Готово!\nКнигу *"{book_title}"* додано до списку '
                                       f'улюблених.', parse_mode='Markdown')
@@ -66,7 +67,8 @@ def remove_book_from_favourite(message):
 
 def remove_book_from_db(message):
     book_name_to_remove = message.text
-    cursor.execute(f"DELETE FROM ratings WHERE book_title = '{book_name_to_remove}'")
+    chat_id = message.chat.id
+    cursor.execute(f"DELETE FROM ratings_{str(chat_id)} WHERE book_title = '{book_name_to_remove}'")
     connection.commit()
     bot.send_message(message.chat.id, f'✅ Готово!\nКнигу "*{book_name_to_remove}*" видалено списку '
                                       f'улюблених.', parse_mode='Markdown')
@@ -74,7 +76,8 @@ def remove_book_from_db(message):
 
 @bot.message_handler(func=lambda message: message.text == 'Переглянути список улюблених книг')
 def get_favourite_books(message):
-    cursor.execute('SELECT * FROM ratings ORDER BY book_rating DESC LIMIT 10')
+    chat_id = message.chat.id
+    cursor.execute(f"SELECT * FROM ratings_{str(chat_id)} ORDER BY book_rating DESC LIMIT 10")
     top_books = cursor.fetchall()
     response = "*🫶 Мої улюблені книги:*\n\n"
     counter = 1
