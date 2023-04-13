@@ -1,23 +1,18 @@
 import json
 
-import mysql.connector
 import psycopg2
 import requests
 import telebot
 from telebot import types
 
-config = {
-    'user': '<your_mysql_username>',
-    'password': '<your_mysql_password>',
-    'host': '<your_mysql_host>',
-    'database': '<your_mysql_database_name>',
-    'port': '3306'
-}
+connection = psycopg2.connect(
+    dbname='d94la4l35lvc45',
+    user='pyxobvjdqcpjns',
+    password='8ff357a572c361bb594ede291ed17d7e3cf0ba224e4ea07224bdc4c6bed6a973',
+    host='ec2-52-215-68-14.eu-west-1.compute.amazonaws.com',
+)
 
-postgres_connection = psycopg2.connect(dbname='book_ratings', user='postgres', password='postgres', host='localhost')
-mysql_connection = mysql.connector.connect(**config)
-
-cursor = mysql_connection.cursor()
+cursor = connection.cursor()
 
 cursor.execute('CREATE TABLE IF NOT EXISTS ratings  '
                '(id serial PRIMARY KEY, book_title VARCHAR(50), book_author VARCHAR(50), book_rating REAL)')
