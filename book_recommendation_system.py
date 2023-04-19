@@ -1,9 +1,9 @@
 import json
 import ssl
 
+import keras
 import numpy as np
 from keras.utils import get_file
-from tensorflow import keras
 
 from exceptions import IncorrectBookIndex
 
