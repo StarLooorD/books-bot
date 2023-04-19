@@ -1,8 +1,8 @@
 import json
 import ssl
 
-import keras
 import numpy as np
+from keras.models import load_model
 from keras.utils import get_file
 
 from exceptions import IncorrectBookIndex
@@ -24,7 +24,7 @@ books = [book for book in books if 'Wikipedia:' not in book[0]]
 book_index = {book[0]: idx for idx, book in enumerate(books)}
 index_book = {idx: book for book, idx in book_index.items()}
 
-model = keras.models.load_model('book_recommendation_model.h5')
+model = load_model('book_recommendation_model.h5')
 
 book_layer = model.get_layer('book_embedding')
 book_weights = book_layer.get_weights()[0]
