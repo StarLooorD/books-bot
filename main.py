@@ -7,6 +7,7 @@ from telebot import types
 
 from book_recommendation_system import find_similar_books
 from configs import DATABASE_URL, BOT_TOKEN, GOOGLE_MAP_API_TOKEN
+from exceptions import IncorrectBookIndex
 
 connection = psycopg2.connect(DATABASE_URL)
 
@@ -99,14 +100,17 @@ def recommend_book(message):
 def get_recommendation(message):
     book_name = message.text
 
-    recommended_books = find_similar_books(book_name)
-
-    response = "*Найбільш схожі книги:*\n\n"
-    counter = 1
-    for key, value in recommended_books.items():
-        response += f"{counter}) 📖 *{key}*\n ⭐ {value}\n\n"
-        counter += 1
-    bot.send_message(message.chat.id, response, parse_mode='Markdown')
+    try:
+        recommended_books = find_similar_books(book_name)
+    except IncorrectBookIndex:
+        bot.send_message(message.chat.id, "Назва книги неправильна, спробуй ще раз", parse_mode='Markdown')
+    else:
+        response = "*Найбільш схожі книги:*\n\n"
+        counter = 1
+        for key, value in recommended_books.items():
+            response += f"{counter}) 📖 *{key}*\n ⭐ {value}\n\n"
+            counter += 1
+        bot.send_message(message.chat.id, response, parse_mode='Markdown')
 
 
 @bot.message_handler(func=lambda message: message.text == 'Переглянути найближчі книжкові магазини')
