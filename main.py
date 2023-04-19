@@ -5,6 +5,7 @@ import requests
 import telebot
 from telebot import types
 
+from book_recommendation_system import find_similar_books
 from configs import DATABASE_URL, BOT_TOKEN, GOOGLE_MAP_API_TOKEN
 
 connection = psycopg2.connect(DATABASE_URL)
@@ -91,12 +92,21 @@ def get_favourite_books(message):
 
 @bot.message_handler(func=lambda message: message.text == 'Порадити книгу')
 def recommend_book(message):
-    user_id = message.chat.id
-    # Виклик алгоритму рекомендацій на основі вибраного API
-    # Або запит до бази даних книг
-    # Вибір книги для рекомендації користувачеві
-    book_recommendation = "Прочитайте цю книжку: НАЗВА КНИЖКИ"
-    bot.send_message(user_id, book_recommendation)
+    bot_message = bot.send_message(message.chat.id, 'Вкажи назву книги (англійською), яка тобі сподобалася і я підберу для тебе схожі')
+    bot.register_next_step_handler(bot_message, get_recommendation)
+
+
+def get_recommendation(message):
+    book_name = message.text
+
+    recommended_books = find_similar_books(book_name)
+
+    response = "*Найбільш схожі книги:*\n\n"
+    counter = 1
+    for key, value in recommended_books.items():
+        response += f"{counter}) 📖 *{key}*\n ⭐ {value}\n\n"
+        counter += 1
+    bot.send_message(message.chat.id, response, parse_mode='Markdown')
 
 
 @bot.message_handler(func=lambda message: message.text == 'Переглянути найближчі книжкові магазини')
