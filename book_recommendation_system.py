@@ -32,14 +32,14 @@ book_weights = book_layer.get_weights()[0]
 book_weights = book_weights / np.linalg.norm(book_weights, axis=1).reshape((-1, 1))
 
 
-def find_similar_books(name, weights=book_weights, n=10):
+def find_similar_books(name, weights=book_weights, n=8):
     index = book_index
     rindex = index_book
 
     try:
         dists = np.dot(weights, weights[index[name]])
     except KeyError:
-        raise IncorrectBookIndex
+        raise IncorrectBookIndex("Book with this name does not exists")
 
     sorted_dists = np.argsort(dists)
     closest = sorted_dists[-n:][:-1]
