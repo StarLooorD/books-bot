@@ -105,7 +105,7 @@ def get_recommendation(message):
     except IncorrectBookIndex:
         bot.send_message(message.chat.id, "Назва книги неправильна, спробуй ще раз", parse_mode='Markdown')
     else:
-        response = "*Найбільш схожі книги:*\n\n"
+        response = "*🔝 Найбільш схожі книги:*\n\n"
         counter = 1
         for key, value in recommended_books.items():
             response += f"{counter}) 📖 *{key}*\n ⭐ {value}\n\n"
