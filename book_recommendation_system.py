@@ -6,16 +6,16 @@ from keras.models import load_model
 from keras.utils import get_file
 
 from exceptions import IncorrectBookIndex
+from configs import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
 
 import boto3
-import os
 
 s3 = boto3.client('s3',
-                  aws_access_key_id=os.environ['CLOUDCUBE_ACCESS_KEY_ID'],
-                  aws_secret_access_key=os.environ['CLOUDCUBE_SECRET_ACCESS_KEY'],
-                  endpoint_url=os.environ['CLOUDCUBE_URL'])
+                  aws_access_key_id=AWS_ACCESS_KEY_ID,
+                  aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+                  region_name=AWS_REGION)
 
-s3.download_file('cloud-cube-eu2', 'book_recommendation_model.h5', 'book_recommendation_model.h5')
+s3.download_file('books-bot', 'book_recommendation_model.h5', 'book_recommendation_model.h5')
 
 
 ssl._create_default_https_context = ssl._create_unverified_context
