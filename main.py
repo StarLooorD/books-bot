@@ -66,22 +66,26 @@ def add_book_to_favourite(message):
 
 
 def add_book_to_db(message):
-    book_title, book_author, book_rating = message.text.split(',')
-    chat_id = message.chat.id
-    cursor.execute(f"SELECT * FROM ratings_{str(chat_id)} "
-                   f"WHERE book_title = '{book_title}' AND book_author = '{book_author}'")
-    book_in_list = cursor.fetchall()
-    if not book_in_list:
-        cursor.execute(
-            f"INSERT INTO ratings_{str(chat_id)} (book_title, book_author, book_rating) "
-            f"VALUES ('{book_title}', '{book_author}', {book_rating})")
-        connection.commit()
-        bot.send_message(message.chat.id, f'✅ Готово! ✅\nКнигу *"{book_title}"* додано до списку '
-                                          f'улюблених.', parse_mode='Markdown')
+    try:
+        book_title, book_author, book_rating = message.text.split(',')
+    except ValueError:
+        bot.send_message(message.chat.id, "🛑 Упс, не той формат... 🛑\nСпробуй ще раз, дотримуючись формату через кому.")
     else:
-        bot.send_message(message.chat.id,
-                         f'🛑 Ану, щось не те... 🛑\nКнига *"{book_title}" з автором *{book_author}* вже є в твоєму '
-                         f'списку улюблених.')
+        chat_id = message.chat.id
+        cursor.execute(f"SELECT * FROM ratings_{str(chat_id)} "
+                       f"WHERE book_title = '{book_title}' AND book_author = '{book_author}'")
+        book_in_list = cursor.fetchall()
+        if not book_in_list:
+            cursor.execute(
+                f"INSERT INTO ratings_{str(chat_id)} (book_title, book_author, book_rating) "
+                f"VALUES ('{book_title}', '{book_author}', {book_rating})")
+            connection.commit()
+            bot.send_message(message.chat.id, f'✅ Готово! ✅\nКнигу *"{book_title}"* додано до списку '
+                                              f'улюблених.', parse_mode='Markdown')
+        else:
+            bot.send_message(message.chat.id,
+                             f'🛑 Ану, щось не те... 🛑\nКнига *"{book_title}" з автором *{book_author}* вже є в твоєму '
+                             f'списку улюблених.')
 
 
 @bot.message_handler(func=lambda message: message.text == 'Видалити книгу з улюблених')
@@ -102,10 +106,9 @@ def remove_book_from_db(message):
         bot.send_message(message.chat.id, f'✅ Готово! ✅\nКнигу *"{book_name_to_remove}"* видалено списку '
                                           f'улюблених.', parse_mode='Markdown')
     else:
-        bot_message = bot.send_message(message.chat.id,
-                                       f'🛑 Ой... 🛑\nКниги *"{book_name_to_remove}"* немає в твоєму списку улюблених, '
-                                       f'спробуй ще раз.', parse_mode='Markdown')
-        bot.register_next_step_handler(bot_message, remove_book_from_db)
+        bot.send_message(message.chat.id,
+                         f'🛑 Ой... 🛑\nКниги *"{book_name_to_remove}"* немає в твоєму списку улюблених, '
+                         f'спробуй ще раз.', parse_mode='Markdown')
 
 
 @bot.message_handler(func=lambda message: message.text == 'Переглянути список улюблених книг')
@@ -140,10 +143,8 @@ def get_recommendation(message):
     try:
         recommended_books = find_similar_books(book_name)
     except IncorrectBookIndex:
-        bot_message = bot.send_message(message.chat.id,
-                                       "🛑 Ой, а що трапилось... 🛑\nНазва книги неправильна, спробуй ще раз",
-                                       parse_mode='Markdown')
-        bot.register_next_step_handler(bot_message, get_recommendation)
+        bot.send_message(message.chat.id,
+                         "🛑 Ой, а що трапилось... 🛑\nНазва книги неправильна, спробуй ще раз", parse_mode='Markdown')
     else:
         response = "*🔝 Ось 7 найбільш схожих книг:*\n\n"
         counter = 1
@@ -184,9 +185,8 @@ def get_nearest_book_stores(message):
             bot_response += f"📚 Магазин: {name}\n 📍 Адреса: {address}\n ⭐ Рейтинг: {rating}\n {open_now}\n\n"
         bot.send_message(message.chat.id, bot_response, parse_mode='Markdown')
     except AttributeError:
-        bot_message = bot.send_message(message.chat.id,
-                                       f"🛑 Ойой, не те нам треба... 🛑\nСпробуй ще раз поділитися локацією.")
-        bot.register_next_step_handler(bot_message, get_nearest_book_stores)
+        bot.send_message(message.chat.id,
+                         f"🛑 Ойой, не те нам треба... 🛑\nСпробуй ще раз поділитися локацією.")
 
 
 bot.polling(none_stop=True, interval=0)
