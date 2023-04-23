@@ -16,11 +16,11 @@ cursor = connection.cursor()
 bot = telebot.TeleBot(token=BOT_TOKEN)
 
 main_menu_keyboard = types.ReplyKeyboardMarkup(row_width=2)
-btn1 = types.KeyboardButton(text='🪄 Порадити книгу')
-btn2 = types.KeyboardButton(text='➕ Додати книгу в улюблені')
-btn3 = types.KeyboardButton(text='➖ Видалити книгу з улюблених')
-btn4 = types.KeyboardButton(text='🔝 Переглянути список улюблених книг')
-btn5 = types.KeyboardButton(text='🏘️ Переглянути найближчі книжкові магазини')
+btn1 = types.KeyboardButton(text='🪄\nПорадити книгу')
+btn2 = types.KeyboardButton(text='➕\nДодати книгу в улюблені')
+btn3 = types.KeyboardButton(text='➖\nВидалити книгу з улюблених')
+btn4 = types.KeyboardButton(text='🔝\nПереглянути список улюблених книг')
+btn5 = types.KeyboardButton(text='🏘️\nПереглянути найближчі книжкові магазини')
 main_menu_keyboard.add(btn1, btn2, btn3, btn4, btn5)
 
 
@@ -44,7 +44,7 @@ def send_help_info(message):
     bot.send_message(message.chat.id, ...)
 
 
-@bot.message_handler(func=lambda message: message.text == '➕ Додати книгу в улюблені')
+@bot.message_handler(func=lambda message: message.text == '➕\nДодати книгу в улюблені')
 def add_book_to_favourite(message):
     bot_message = bot.send_message(message.chat.id,
                                    '👌 Окей! 👌\nВкажи назву книги, автора та оцінку від 0.0 до 5.0.\nНапр: Гарі Потер, Дж. К. Ролінг, 4.7')
@@ -61,7 +61,7 @@ def add_book_to_db(message):
                                       f'улюблених.', parse_mode='Markdown')
 
 
-@bot.message_handler(func=lambda message: message.text == '➖ Видалити книгу з улюблених')
+@bot.message_handler(func=lambda message: message.text == '➖\nВидалити книгу з улюблених')
 def remove_book_from_favourite(message):
     bot_message = bot.send_message(message.chat.id, '👌 Окей! 👌\nВкажи назву книги, яку хочеш видалити із списку улюблених')
     bot.register_next_step_handler(bot_message, remove_book_from_db)
@@ -76,7 +76,7 @@ def remove_book_from_db(message):
                                       f'улюблених.', parse_mode='Markdown')
 
 
-@bot.message_handler(func=lambda message: message.text == '🔝 Переглянути список улюблених книг')
+@bot.message_handler(func=lambda message: message.text == '🔝\nПереглянути список улюблених книг')
 def get_favourite_books(message):
     chat_id = message.chat.id
     cursor.execute(f"SELECT * FROM ratings_{str(chat_id)} ORDER BY book_rating DESC LIMIT 10")
@@ -91,9 +91,9 @@ def get_favourite_books(message):
     bot.send_message(message.chat.id, response, parse_mode='Markdown')
 
 
-@bot.message_handler(func=lambda message: message.text == '🪄 Порадити книгу')
+@bot.message_handler(func=lambda message: message.text == '🪄\nПорадити книгу')
 def recommend_book(message):
-    bot_message = bot.send_message(message.chat.id, '💪 Легко) 💪\nВкажи назву книги (англійською), яка тобі сподобалася і я підберу для тебе схожі 🪄')
+    bot_message = bot.send_message(message.chat.id, '💪 Легко! 💪\nВкажи назву книги (англійською), яка тобі сподобалася і я підберу для тебе схожі 🪄')
     bot.register_next_step_handler(bot_message, get_recommendation)
 
 
@@ -103,7 +103,7 @@ def get_recommendation(message):
     try:
         recommended_books = find_similar_books(book_name)
     except IncorrectBookIndex:
-        bot.send_message(message.chat.id, "🛑Ой, а що трапилось... 🛑\nНазва книги неправильна, спробуй ще раз", parse_mode='Markdown')
+        bot.send_message(message.chat.id, "🛑 Ой, а що трапилось... 🛑\nНазва книги неправильна, спробуй ще раз", parse_mode='Markdown')
     else:
         response = "*🔝 Найбільш схожі книги:*\n\n"
         counter = 1
@@ -113,9 +113,9 @@ def get_recommendation(message):
         bot.send_message(message.chat.id, response, parse_mode='Markdown')
 
 
-@bot.message_handler(func=lambda message: message.text == '🏘️ Переглянути найближчі книжкові магазини')
+@bot.message_handler(func=lambda message: message.text == '🏘️\nПереглянути найближчі книжкові магазини')
 def get_user_location(message):
-    bot_message = bot.send_message(message.chat.id, '📍 Для цього потрібна твоя локація 📍\nПоділися, будь ласка, своєю локацією')
+    bot_message = bot.send_message(message.chat.id, '👽 Питань нема 👽\nПоділися, будь ласка, своєю локацією 📍')
     bot.register_next_step_handler(bot_message, get_nearest_book_stores)
 
 
