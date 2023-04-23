@@ -125,8 +125,8 @@ def get_favourite_books(message):
         # with open('images/istockphoto-1370405901-612x612.jpg', 'rb') as photo:
         #     bot.send_photo(message.chat.id, photo, caption=response, parse_mode='Markdown')
     else:
-        response = "⚠️ Щось ніц нема... ⚠️\nПоки твій список улюблених книг порожній.\n" \
-                   "Скористайся командою 'Додати книгу в улюблені', щоб додати першу книгую"
+        response = '⚠️ Щось ніц нема... ⚠️\nПоки твій список улюблених книг порожній. ' \
+                   'Скористайся командою "Додати книгу в улюблені", щоб додати першу книгу.'
     bot.send_message(message.chat.id, response, parse_mode='Markdown')
 
 
